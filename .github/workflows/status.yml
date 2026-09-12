@@ -1,0 +1,29 @@
+name: NikVPN Debug Status
+
+# Run this anytime against an already-running codespace to pull a full
+# diagnostic snapshot (xray version, process state, listening ports,
+# config validation result, last log lines, current link) without
+# creating a new codespace.
+
+on:
+  workflow_dispatch:
+    inputs:
+      codespace_name:
+        description: "Codespace name (e.g. nikvpn-auto-6vg4r66qxjg4c5xgp — shown when it was created, or run 'gh codespace list')"
+        required: true
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.CODESPACE_TOKEN }}
+    steps:
+      - name: List codespaces (sanity check)
+        run: gh codespace list
+
+      - name: Pull debug report
+        run: |
+          gh codespace ssh -c "${{ inputs.codespace_name }}" -- bash /usr/local/bin/debug.sh || true
+          echo ""
+          echo "================ DEBUG REPORT ================"
+          gh codespace ssh -c "${{ inputs.codespace_name }}" -- cat /tmp/nikvpn-debug.txt

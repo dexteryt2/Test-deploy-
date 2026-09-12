@@ -1,0 +1,79 @@
+name: Start NikVPN Codespace
+
+on:
+  workflow_dispatch:
+    inputs:
+      idle_timeout:
+        description: "Idle timeout before Codespace auto-stops (e.g. 4h, 30m)"
+        default: "4h"
+        required: false
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    env:
+      # Needs a PAT with the "codespace" scope, saved as a repo secret.
+      # The default GITHUB_TOKEN cannot manage Codespaces.
+      GH_TOKEN: ${{ secrets.CODESPACE_TOKEN }}
+
+    steps:
+      - name: Create Codespace
+        id: create
+        run: |
+          NAME=$(gh codespace create \
+            -R "${{ github.repository }}" \
+            -b "${{ github.ref_name }}" \
+            -m basicLinux32gb \
+            --idle-timeout "${{ inputs.idle_timeout }}" \
+            --default-permissions \
+            --display-name "nikvpn-auto")
+          echo "Created codespace: $NAME"
+          echo "CS_NAME=$NAME" >> "$GITHUB_ENV"
+
+      - name: Wait for setup and fetch the VLESS link
+        run: |
+          echo "Waiting for Xray to start inside the codespace..."
+          echo "(the container is being built from scratch — apt install + downloading"
+          echo "Xray/geoip/geosite — this can realistically take 5-10+ minutes on first create)"
+          for i in $(seq 1 60); do
+            ELAPSED=$((i * 15))
+            echo "[attempt ${i}/60, ~${ELAPSED}s elapsed] checking for link..."
+            LINK=$(gh codespace ssh -c "$CS_NAME" -- cat /tmp/nikvpn-link.txt 2>/dev/null || true)
+            if [ -n "$LINK" ]; then
+              SUB_URL=$(gh codespace ssh -c "$CS_NAME" -- cat /tmp/nikvpn-sub-url.txt 2>/dev/null || true)
+              ALL_LINKS=$(gh codespace ssh -c "$CS_NAME" -- bash -c 'base64 -d /tmp/nikvpn-sub/sub 2>/dev/null' || true)
+              echo ""
+              echo "=========================================="
+              echo "  NikVPN Codespace READY"
+              echo "=========================================="
+              echo ""
+              echo "All configs (VLESS / VMess / Trojan / SS-2022):"
+              echo "$ALL_LINKS"
+              echo ""
+              echo "Subscription URL (import this in v2rayNG/NekoBox/Hiddify/PattNG):"
+              echo "$SUB_URL"
+              echo ""
+              echo "------------------------------------------"
+              echo "Codespace name: $CS_NAME"
+              echo "It keeps running independently of this job"
+              echo "(idle-timeout: ${{ inputs.idle_timeout }})."
+              echo ""
+              echo "To stop it manually later:"
+              echo "  gh codespace stop -c $CS_NAME"
+              echo "To delete it:"
+              echo "  gh codespace delete -c $CS_NAME"
+              echo "=========================================="
+              exit 0
+            fi
+            sleep 15
+          done
+
+          echo "FAILED: link never appeared. Dumping full debug report:"
+          gh codespace ssh -c "$CS_NAME" -- bash /usr/local/bin/debug.sh || true
+          gh codespace ssh -c "$CS_NAME" -- cat /tmp/nikvpn-debug.txt || true
+          echo ""
+          echo "Codespace '$CS_NAME' was left running so you can inspect it further:"
+          echo "  gh codespace ssh -c $CS_NAME"
+          echo "Delete it when done:"
+          echo "  gh codespace delete -c $CS_NAME"
+          exit 1

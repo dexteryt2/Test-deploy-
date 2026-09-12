@@ -1,0 +1,31 @@
+name: Cleanup NikVPN Codespaces
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "yes" to actually delete all nikvpn-auto codespaces'
+        required: true
+        default: "no"
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.CODESPACE_TOKEN }}
+    steps:
+      - name: List all codespaces
+        run: gh codespace list
+
+      - name: Delete all nikvpn-auto codespaces
+        if: ${{ inputs.confirm == 'yes' }}
+        run: |
+          gh codespace list --json name,displayName -q '.[] | select(.displayName=="nikvpn-auto") | .name' | \
+          while read -r NAME; do
+            echo "Deleting $NAME..."
+            gh codespace delete -c "$NAME" --force || true
+          done
+
+      - name: Skipped (confirm not set to yes)
+        if: ${{ inputs.confirm != 'yes' }}
+        run: echo "Nothing deleted — set the 'confirm' input to 'yes' to actually delete."

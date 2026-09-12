@@ -1,0 +1,133 @@
+{
+  "name": "NikVPN Codespace (Auto)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
+  },
+  "remoteUser": "root",
+  "postCreateCommand": "(gh codespace ports visibility 443:public 8005:public 8006:public 8007:public 8880:public 8008:public 8009:public 8010:public 8443:public 8011:public 8012:public 8013:public 2053:public 8014:public 8080:public -c $CODESPACE_NAME || true); bash /usr/local/bin/start.sh",
+  "postAttachCommand": "(gh codespace ports visibility 443:public 8005:public 8006:public 8007:public 8880:public 8008:public 8009:public 8010:public 8443:public 8011:public 8012:public 8013:public 2053:public 8014:public 8080:public -c $CODESPACE_NAME || true); bash /usr/local/bin/start.sh",
+  "portsAttributes": {
+    "443": {
+      "label": "vless-xhttp",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8005": {
+      "label": "vless-ws",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8006": {
+      "label": "vless-grpc",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8007": {
+      "label": "vless-httpupgrade",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8880": {
+      "label": "vmess-ws",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8008": {
+      "label": "vmess-xhttp",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8009": {
+      "label": "vmess-grpc",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8010": {
+      "label": "vmess-httpupgrade",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8443": {
+      "label": "trojan-ws",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8011": {
+      "label": "trojan-xhttp",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8012": {
+      "label": "trojan-grpc",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8013": {
+      "label": "trojan-httpupgrade",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "2053": {
+      "label": "ss-ws",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8014": {
+      "label": "ss-httpupgrade",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    },
+    "8080": {
+      "label": "nikvpn-sub",
+      "protocol": "http",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    }
+  },
+  "forwardPorts": [
+    443,
+    8005,
+    8006,
+    8007,
+    8880,
+    8008,
+    8009,
+    8010,
+    8443,
+    8011,
+    8012,
+    8013,
+    2053,
+    8014,
+    8080
+  ],
+  "hostRequirements": {
+    "cpus": 2
+  }
+}
